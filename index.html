@@ -320,6 +320,90 @@
   #intro.moving .intro-logo{box-shadow:0 18px 46px rgba(70,60,40,0)}
   body.intro-lock{overflow:hidden}
   @media(prefers-reduced-motion:reduce){#intro .intro-logo{transition:opacity .4s ease}}
+
+  /* =====================================================================
+     RESPONSIVE OVERHAUL — consistent layout from phone to ultrawide
+     ===================================================================== */
+  html,body{max-width:100%;overflow-x:hidden}
+  img,svg,canvas,video{max-width:100%}
+
+  /* Large desktops / ultrawide: cap content so it never sprawls */
+  @media (min-width:1600px){
+    :root{--maxw:1340px}
+    section{padding:150px 40px}
+  }
+  @media (min-width:1400px){
+    .hero{padding-left:max(40px,calc((100vw - 1240px)/2));padding-right:max(40px,calc((100vw - 1240px)/2))}
+  }
+
+  /* Small desktop / large laptop */
+  @media (max-width:1200px){
+    section{padding:112px 32px}
+  }
+
+  /* Tablet */
+  @media (max-width:1024px){
+    section{padding:96px 28px}
+    .look-grid{grid-template-columns:repeat(2,1fr)}
+    .phil-grid{grid-template-columns:1fr;gap:36px}
+    .about-grid{grid-template-columns:1fr;gap:46px}
+    .contact-grid{grid-template-columns:1fr;gap:56px}
+    .services .plans{grid-template-columns:repeat(3,1fr);gap:12px;perspective:1200px}
+    .about-portrait{max-width:440px;margin:0 auto}
+  }
+
+  /* Collapse to single column (matches nav breakpoint) */
+  @media (max-width:920px){
+    .ehead{grid-template-columns:1fr;gap:14px;margin-bottom:44px}
+    .steps{grid-template-columns:1fr;gap:0}
+    .cgrid{grid-template-columns:1fr}
+    /* FIX: pricing must stack on phones — override the .services .plans rule */
+    .services .plans{grid-template-columns:1fr;gap:18px;perspective:none}
+    .plans-fan .plan,
+    .plans-fan.in .plan{transform:none !important}
+    .what .row{grid-template-columns:auto 1fr;gap:18px}
+    .what .row h3{grid-column:2}
+    .what .row p{grid-column:1/-1;justify-self:start;text-align:left;max-width:none;margin-top:4px}
+    .hero{min-height:auto;padding:112px 28px 74px}
+    .hero-foot{gap:28px}
+  }
+
+  /* Phones */
+  @media (max-width:600px){
+    section{padding:78px 20px}
+    .nav-inner{padding:16px 20px}
+    .brand{font-size:14px;letter-spacing:.26em}
+    .hero{padding:100px 20px 60px}
+    .hero-actions{width:100%;gap:12px}
+    .hero-actions .btn{flex:1 1 auto;justify-content:center}
+    .btn{padding:16px 24px}
+    .look-grid{grid-template-columns:1fr 1fr;gap:10px}
+    .look-grid .panel:nth-child(odd){transform:none}
+    .plan{padding:34px 24px}
+    .plan h3{min-height:0}
+    .plan .desc{min-height:0}
+    .case{padding:38px 24px}
+    .ethos{padding:104px 20px}
+    .cta{padding:118px 20px}
+    .steps .step{grid-template-columns:60px 1fr}
+    .rate-toggle{gap:12px}
+  }
+
+  /* Very small phones */
+  @media (max-width:380px){
+    section{padding:64px 16px}
+    .brand{font-size:12.5px;letter-spacing:.18em}
+    .look-grid{grid-template-columns:1fr}
+    .look-grid .panel{aspect-ratio:16/10}
+  }
+
+  /* Dynamic viewport height so mobile address-bar resize doesn't jolt the hero */
+  @supports (height:100dvh){
+    .hero{min-height:min(92dvh,900px)}
+  }
+  @media (max-width:920px){
+    @supports (height:100dvh){ .hero{min-height:auto} }
+  }
 </style>
 </head>
 <body>
