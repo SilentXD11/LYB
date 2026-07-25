@@ -102,6 +102,9 @@
   .hero-lead p{font-family:var(--serif);font-size:clamp(18px,2.3vw,23px);font-style:italic;color:var(--soft);line-height:1.5}
   .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
   .vlabel{position:absolute;right:26px;top:50%;transform:rotate(90deg);transform-origin:right;font-family:var(--sans);font-size:10.5px;letter-spacing:.4em;text-transform:uppercase;color:var(--mute-solid);z-index:2}
+  /* animated flowing-silk hero background */
+  .hero-silk{position:absolute;inset:0;width:100%;height:100%;z-index:0;display:block}
+  .hero-veil{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(244,241,234,.30),rgba(244,241,234,.52))}
 
   /* MARQUEE */
   .ticker{background:var(--ink);color:var(--cream);padding:26px 0;overflow:hidden;white-space:nowrap}
@@ -342,6 +345,8 @@
 
 <!-- HERO -->
 <section class="hero" id="home">
+  <canvas class="hero-silk" id="heroSilk" aria-hidden="true"></canvas>
+  <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-fig" aria-hidden="true">
     <svg viewBox="0 0 200 320">
       <circle cx="100" cy="40" r="22"/>
@@ -735,6 +740,57 @@
       setTimeout(finish,780+1200+500);
     }
     if(document.readyState==='complete')run(); else window.addEventListener('load',run);
+  })();
+</script>
+<script>
+  /* animated flowing-silk hero background (canvas) */
+  (function(){
+    var wrap=document.getElementById('home');
+    var cvs=document.getElementById('heroSilk');
+    if(!wrap||!cvs)return;
+    var ctx=cvs.getContext('2d');
+    var DPR=Math.min(window.devicePixelRatio||1,2), W=0, H=0;
+    function size(){var r=wrap.getBoundingClientRect();W=r.width;H=r.height;cvs.width=W*DPR;cvs.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+    size(); window.addEventListener('resize',size);
+    var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    var bands=[
+      {col:[203,141,79], a:0.30, base:0.30, amp:26, k:0.011, sp:0.00042, ph:0.0, th:150},
+      {col:[130,146,124],a:0.28, base:0.46, amp:32, k:0.009, sp:0.00035, ph:1.7, th:170},
+      {col:[203,141,79], a:0.22, base:0.60, amp:22, k:0.013, sp:0.00050, ph:3.1, th:140},
+      {col:[210,196,168],a:0.34, base:0.74, amp:30, k:0.008, sp:0.00030, ph:4.6, th:190},
+      {col:[167,179,161],a:0.26, base:0.88, amp:24, k:0.012, sp:0.00046, ph:5.9, th:160}
+    ];
+    var mx=0.5,my=0.5,tmx=0.5,tmy=0.5;
+    wrap.addEventListener('pointermove',function(e){var r=wrap.getBoundingClientRect();tmx=(e.clientX-r.left)/r.width;tmy=(e.clientY-r.top)/r.height;});
+    wrap.addEventListener('pointerleave',function(){tmx=0.5;tmy=0.5;});
+    function band(b,t){
+      var yc=b.base*H, lean=(mx-0.5)*40, amp=b.amp*(1+(my-0.5)*0.5), step=10, x,y;
+      ctx.beginPath();
+      for(x=0;x<=W+step;x+=step){y=yc+Math.sin(x*b.k+t*b.sp+b.ph)*amp+Math.sin(x*b.k*0.5+t*b.sp*1.6)*amp*0.4+lean*Math.sin(x*0.004);if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+      for(x=W+step;x>=0;x-=step){y=yc+b.th+Math.sin(x*b.k+t*b.sp+b.ph+0.6)*amp*0.7+Math.sin(x*b.k*0.5+t*b.sp*1.6)*amp*0.3;ctx.lineTo(x,y);}
+      ctx.closePath();
+      var g=ctx.createLinearGradient(0,yc-amp,0,yc+b.th+amp), c=b.col;
+      g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+      g.addColorStop(0.5,'rgba('+c[0]+','+c[1]+','+c[2]+','+b.a+')');
+      g.addColorStop(1,'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+      ctx.fillStyle=g; ctx.fill();
+    }
+    function sheen(t){
+      var sx=((t*0.00006)%1.4-0.2)*W;
+      var g=ctx.createLinearGradient(sx-100,0,sx+100,0);
+      g.addColorStop(0,'rgba(255,252,245,0)');g.addColorStop(0.5,'rgba(255,252,245,0.5)');g.addColorStop(1,'rgba(255,252,245,0)');
+      ctx.globalCompositeOperation='soft-light';ctx.fillStyle=g;ctx.fillRect(sx-100,0,200,H);ctx.globalCompositeOperation='source-over';
+    }
+    function frame(t){
+      mx+=(tmx-mx)*0.05;my+=(tmy-my)*0.05;
+      ctx.clearRect(0,0,W,H);
+      var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#e9e2d3');bg.addColorStop(1,'#f4f1ea');
+      ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+      for(var i=0;i<bands.length;i++)band(bands[i],t);
+      sheen(t);
+      if(!reduce)requestAnimationFrame(frame);
+    }
+    if(reduce)frame(3000);else requestAnimationFrame(frame);
   })();
 </script>
 </body>
