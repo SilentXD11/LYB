@@ -180,6 +180,43 @@
   .plan ul li::before{content:"";width:5px;height:5px;flex:none;border-radius:50%;background:var(--brass);transform:translateY(-2px)}
   .plan .btn{width:100%;margin-top:auto}
 
+  /* ===== SERVICES — animated fan-out + rate toggle ===== */
+  /* separate the joined table into individual cards so they can move independently */
+  .services .plans{grid-template-columns:repeat(3,1fr);gap:18px;border:0;perspective:1600px}
+  .services .plan{border:1px solid var(--line);border-radius:5px;box-shadow:0 18px 46px rgba(70,60,40,.05)}
+  .services .plan:last-child{border-right:1px solid var(--line)}
+  .services .plan.pop{border:1px solid var(--brass);box-shadow:0 26px 60px rgba(120,95,50,.13)}
+
+  /* rate toggle */
+  .rate-toggle{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:56px;flex-wrap:wrap}
+  .rt-opt{font-family:var(--sans);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute-solid);transition:color .3s;user-select:none}
+  .rt-opt.on{color:var(--ink)}
+  .rt-opt em{font-style:italic;font-family:var(--serif);letter-spacing:0;text-transform:none;font-size:15px;color:var(--brass);margin-left:4px}
+  .rt-switch{position:relative;width:58px;height:28px;border-radius:999px;border:1px solid var(--line);background:var(--greige);cursor:pointer;padding:0;transition:background .35s;flex:none}
+  .rt-switch[aria-checked="true"]{background:var(--brass)}
+  .rt-thumb{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--cream);box-shadow:0 2px 6px rgba(0,0,0,.22);transition:transform .38s cubic-bezier(.34,1.4,.5,1)}
+  .rt-switch[aria-checked="true"] .rt-thumb{transform:translateX(30px)}
+
+  /* price roll pop */
+  .plan .price{font-variant-numeric:tabular-nums;transition:color .3s;transform-origin:center;display:inline-block}
+  .plan .price.flash{animation:pricePop .5s ease}
+  @keyframes pricePop{0%{transform:scale(1)}42%{transform:scale(1.09);color:var(--brass)}100%{transform:scale(1)}}
+
+  /* fan-out reveal on scroll */
+  .plans-fan .plan{opacity:0;transform:translateY(52px) scale(.96);transition:opacity .7s ease,transform 1.15s cubic-bezier(.22,1,.36,1);backface-visibility:hidden}
+  .plans-fan.in .plan{opacity:1}
+  .plans-fan.in .plan:nth-child(1){transform:translateX(26px) translateY(8px) scale(.94) rotateY(9deg);transform-origin:right center;transition-delay:.30s}
+  .plans-fan.in .plan:nth-child(2){transform:translateY(-20px) scale(1);transition-delay:.45s}
+  .plans-fan.in .plan:nth-child(3){transform:translateX(-26px) translateY(8px) scale(.94) rotateY(-9deg);transform-origin:left center;transition-delay:.60s}
+  @media(max-width:760px){
+    .services .plans{perspective:none}
+    .plans-fan.in .plan{transform:none !important}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .plans-fan .plan{transition:opacity .4s ease}
+    .plans-fan.in .plan{transform:none !important}
+  }
+
   /* CLIENTS */
   .clients{background:var(--cream)}
   .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--line)}
@@ -272,10 +309,19 @@
   .brand{display:inline-flex;align-items:center}
   .navlogo{width:30px;height:30px;flex:none;margin-right:13px}
   .hero-top .mark.lyb-logo{width:58px;height:58px}
+
+  /* ===== intro loading screen — logo flies into hero position ===== */
+  #intro{position:fixed;inset:0;z-index:1000;background:var(--cream);display:flex;align-items:center;justify-content:center;transition:opacity .5s ease,background .6s ease}
+  #intro .intro-logo{width:clamp(150px,26vw,296px);height:clamp(150px,26vw,296px);border-radius:50%;opacity:0;will-change:transform,opacity;transform-origin:center center;transition:transform 1.2s cubic-bezier(.22,1,.36,1),opacity .55s ease;box-shadow:0 30px 70px rgba(70,60,40,.16)}
+  #intro.ready .intro-logo{opacity:1}
+  #intro.moving .intro-logo{box-shadow:0 18px 46px rgba(70,60,40,0)}
+  body.intro-lock{overflow:hidden}
+  @media(prefers-reduced-motion:reduce){#intro .intro-logo{transition:opacity .4s ease}}
 </style>
 </head>
 <body>
 
+<div id="intro" aria-hidden="true"><div class="intro-logo lyb-logo"></div></div>
 <div class="progress" id="prog"></div>
 
 <header class="nav" id="nav">
@@ -441,11 +487,16 @@
       <span class="idx">06</span>
       <div><span class="label">Introductory Founding Client Investment</span><h2>Styling Experiences</h2></div>
     </div>
-    <div class="plans reveal">
+    <div class="rate-toggle reveal">
+      <span class="rt-opt" id="rtStd">Standard</span>
+      <button class="rt-switch" id="rateSwitch" role="switch" aria-checked="true" aria-label="Switch between founding client and standard rates"><span class="rt-thumb"></span></button>
+      <span class="rt-opt on" id="rtIntro">Founding Client <em>(Save up to 30%)</em></span>
+    </div>
+    <div class="plans plans-fan reveal">
       <div class="plan">
         <span class="tag">&nbsp;</span>
         <h3>Style Foundations</h3>
-        <div class="price">£39</div>
+        <div class="price" data-intro="39" data-standard="59">£39</div>
         <div class="rate">Introductory Rate</div>
         <div class="desc">Ideal for first-time clients who want to understand what truly suits them.</div>
         <ul>
@@ -459,7 +510,7 @@
       <div class="plan pop">
         <span class="tag">Most Popular</span>
         <h3>Everyday Signature Style</h3>
-        <div class="price">£59</div>
+        <div class="price" data-intro="59" data-standard="89">£59</div>
         <div class="rate">Introductory Rate</div>
         <div class="desc">Best suited for college and office-going individuals seeking refined everyday style.</div>
         <ul>
@@ -474,7 +525,7 @@
       <div class="plan">
         <span class="tag">&nbsp;</span>
         <h3>Complete Image &amp; Wardrobe Management</h3>
-        <div class="price">£89</div>
+        <div class="price" data-intro="89" data-standard="129">£89</div>
         <div class="rate">Introductory Rate</div>
         <div class="desc">For those ready to elevate their image and wardrobe with intention.</div>
         <ul>
@@ -592,6 +643,7 @@
   </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
 <script>
   /* ====== BOOKING LINK — replace with your real Calendly URL ====== */
   const CALENDLY = "https://calendly.com/loveyourbody/consultation";
@@ -621,6 +673,69 @@
 
   const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  /* ===== rate toggle: Founding (intro) <-> Standard, with rolling numbers + confetti ===== */
+  (function(){
+    const sw=document.getElementById('rateSwitch');
+    if(!sw)return;
+    const prices=[...document.querySelectorAll('.services .plan .price')];
+    const rates=[...document.querySelectorAll('.services .plan .rate')];
+    const optIntro=document.getElementById('rtIntro'), optStd=document.getElementById('rtStd');
+    let intro=true; // Founding rates shown by default
+    prices.forEach(p=>p.dataset.cur=p.dataset.intro);
+    function roll(el,to){
+      const from=parseInt(el.dataset.cur,10);
+      el.dataset.cur=to;
+      el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');
+      const start=performance.now(),dur=520;
+      (function tick(now){
+        const p=Math.min((now-start)/dur,1), e=1-Math.pow(1-p,3);
+        el.textContent='£'+Math.round(from+(to-from)*e);
+        if(p<1)requestAnimationFrame(tick);else el.textContent='£'+to;
+      })(start);
+    }
+    function apply(fire){
+      sw.setAttribute('aria-checked',intro?'true':'false');
+      optIntro.classList.toggle('on',intro);
+      optStd.classList.toggle('on',!intro);
+      prices.forEach(p=>roll(p,parseInt(intro?p.dataset.intro:p.dataset.standard,10)));
+      rates.forEach(r=>r.textContent=intro?'Introductory Rate':'Standard Rate');
+      if(fire&&intro&&window.confetti){
+        const r=sw.getBoundingClientRect();
+        confetti({particleCount:60,spread:65,startVelocity:32,gravity:1.1,decay:.93,ticks:200,scalar:.9,
+          origin:{x:(r.left+r.width/2)/innerWidth,y:(r.top+r.height/2)/innerHeight},
+          colors:['#b08d4f','#c2a878','#a7b3a1','#82927c','#1e1e1b']});
+      }
+    }
+    sw.addEventListener('click',()=>{intro=!intro;apply(true);});
+  })();
+</script>
+<script>
+  /* intro: FLIP the logo from screen-center into its real hero slot */
+  (function(){
+    var intro=document.getElementById('intro'); if(!intro)return;
+    var il=intro.querySelector('.intro-logo');
+    var target=document.querySelector('.hero-logo');
+    document.body.classList.add('intro-lock');
+    function finish(){document.body.classList.remove('intro-lock'); if(intro.parentNode)intro.parentNode.removeChild(intro);}
+    function run(){
+      requestAnimationFrame(function(){intro.classList.add('ready');});
+      var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+      if(reduce){setTimeout(function(){intro.style.opacity='0';setTimeout(finish,500);},650);return;}
+      setTimeout(function(){
+        var t=target.getBoundingClientRect(), s=il.getBoundingClientRect();
+        var dx=(t.left+t.width/2)-(s.left+s.width/2);
+        var dy=(t.top+t.height/2)-(s.top+s.height/2);
+        var scale=t.width/s.width;
+        intro.classList.add('moving');
+        il.style.transform='translate('+dx+'px,'+dy+'px) scale('+scale+')';
+        intro.style.background='transparent';
+      },780);
+      setTimeout(function(){intro.style.opacity='0';},780+1200);
+      setTimeout(finish,780+1200+500);
+    }
+    if(document.readyState==='complete')run(); else window.addEventListener('load',run);
+  })();
 </script>
 </body>
 </html>
